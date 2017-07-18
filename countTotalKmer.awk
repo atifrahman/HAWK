@@ -1,0 +1,1 @@
+{if(NR!=1) sum+=$1*$2} END {print sum}
