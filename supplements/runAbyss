@@ -1,0 +1,10 @@
+file=case_out_sig.fasta
+suffix=25_49
+cutoff=49
+~/abyss-1.3.2/ABYSS/ABYSS -k25 -c0 -e0 $file -o case_abyss.fa
+awk '!/^>/ { next } { getline seq } length(seq) >= 49 { print $0 "\n" seq }' case_abyss.fa > case_abyss.$suffix.fa
+
+file=control_out_sig.fasta
+cutoff=49
+~/abyss-1.3.2/ABYSS/ABYSS -k25 -c0 -e0 $file -o control_abyss.fa
+awk '!/^>/ { next } { getline seq } length(seq) >= 49 { print $0 "\n" seq }' control_abyss.fa > control_abyss.$suffix.fa
