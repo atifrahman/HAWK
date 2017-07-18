@@ -1,4 +1,4 @@
-HAWK version 0.8.1
+HAWK version 0.8.2
 
 HAWK (Hitting associations with k-mers) is an alignment free method 
 for association mapping from sequencing reads. It does not require
