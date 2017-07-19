@@ -14,6 +14,7 @@ make
 ## Prerequisites
 
 JELLYFISH (modified version)
+
 ABYSS 
 
 ## Counting k-mers
