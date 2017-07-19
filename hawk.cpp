@@ -18,6 +18,7 @@ using namespace std;
 
 #include "specialfunctions.h"
 
+#define VERSION "0.8.3-beta"
 
 #define MAX_REC_LEN 10240
 
@@ -852,12 +853,32 @@ void * readControls(void *threadid)
 
 }
 
-
+void printHelp()
+{
+    
+	cout<<"hawk-"<<VERSION<<endl;
+	cout<<"----------------"<<endl;
+	cout<<endl;
+	cout<<"hawk - hitting associations with k-mers"<<endl;
+	cout<<"Usage:"<<endl;
+	cout<<"hawk <noCases> <noControls>"<<endl;
+	cout<<endl;
+	cout<<"It requires counting k-mers with Jellyfish before running."<<endl;
+	cout<<"Please see README for more details."<<endl;
+	exit(1);
+    
+}
 
 
 int main(int argc, const char * argv[])
 {
-    
+	if(argc<2)
+	{
+		printHelp();
+	}
+	if(strcmp(argv[1],"--help")==0 || strcmp(argv[1],"-h")==0)
+     		printHelp();	    
+
     noCases=atoi(argv[1]);
     noControls=atoi(argv[2]);
     
