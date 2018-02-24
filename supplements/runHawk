@@ -2,7 +2,6 @@ hawkDir=/home/atif/hawk
 eigenstratDir=/home/atif/EIG6.0.1
 isDiploid=1
 
-noPC=10
 noInd=$(cat sorted_files.txt | wc -l);
 
 
