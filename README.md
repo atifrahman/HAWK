@@ -13,14 +13,18 @@ make
 
 ## Prerequisites
 
-JELLYFISH (modified version)
+JELLYFISH (modified version available in supplements)
+
+EIGENSTRAT (modified version available in supplements)
+
+R (with foreach and doParallel packages)
 
 ABYSS 
 
 ## Counting k-mers
 
 The first step in the pipeline is to count k-mers in each sample, find 
-total number of k-mers per sample, discard k-mers that appear once and sort
+total number of k-mers per sample, discard k-mers that appear once in samples and sort
 the k-mers. The k-mer file contains one line per k-mer present and each 
 line contains an integer representing the k-mer and its count separated 
 by a space. The integer representation is given by using 0 for 'A', 
@@ -35,40 +39,30 @@ and total k-mer count in samples in 'total_kmers.txt'.
 
 ## Running HAWK
 
-Copy 'sorted_files.txt' and 'total_kmers.txt' corresponding to case samples 
-into a folder and rename them 'case_sorted_files.txt' and 'case_total_kmers.txt'.
-Similarly, copy 'sorted_files.txt' and 'total_kmers.txt' corresponding to control 
-samples into the same folder and rename them 'control_sorted_files.txt' and 
-'control_total_kmers.txt'.
+Copy 'sorted_files.txt' and 'total_kmers.txt' corresponding to the samples 
+into a folder as well as a file named 'gwas_info.txt' containing three columns separated by tabs giving a sample ID, male/female/unknown denoted by M/F/U and Case/Control status of the sample for each sample. For example
+
+```
+SRR3050845	U	Control
+SRR3050846	U	Case
+SRR3050847	U	Control
+```
 
 Copy the scripts 'runHawk' and 'runAbyss' into the folder and run
 
 ```
 ./runHawk
-./runAbyss
 ```
 
 The k-mers with significant association to case and controls will be in 
-'case_out_sig.fasta' and 'control_out_sig.fasta' and the assembled 
+'case_kmers.fasta' and 'control_kmers.fasta' which can then be assembled by running
+
+```
+./runAbyss
+```
+
+The assembled 
 sequences will be in 'case_abyss.25_49.fasta' and 'control_abyss.25_49.fasta'
 respectively.
-
-## Analysis of sequences
-
-Statistics about a <sequence> can be obtained by running
-
-```
-./kmerSummary <sequence>
-```
-
-This will output the following averaged over all constituent k-mers.
-P-value
-Total case count for k-mer
-Total control count for k-mer
-Number of case samples k-mer is present in
-Number of control samples k-mer is present in 
-  
-'kmerstats.txt' will list the constituent k-mers and total counts in cases and 
-controls, p-values and counts in individual samples. 
 
 
