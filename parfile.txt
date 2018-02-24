@@ -1,0 +1,8 @@
+genotypename: gwas_eigenstratX.geno
+snpname:      gwas_eigenstratX.snp
+indivname:    gwas_eigenstratX.ind
+evecoutname:  gwas_eigenstrat.evec
+evaloutname:  gwas_eigenstrat.eval
+usenorm:	YES
+numoutlieriter:	0
+numoutevec:	10

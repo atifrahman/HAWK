@@ -18,7 +18,7 @@ using namespace std;
 
 #include "specialfunctions.h"
 
-#define VERSION "0.8.3-beta"
+#define VERSION "0.9.8-beta"
 
 #define MAX_REC_LEN 10240
 
@@ -32,6 +32,13 @@ pthread_mutex_t readFile_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t caseOutFile_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t controlOutFile_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t hashTable_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t eigenFile_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+
+FILE *eigenGenoFile;
+FILE *eigenSNPFile;
+
+
 
 #pragma pack(push, 1)
 class Kmer
@@ -44,6 +51,10 @@ public:
 	double meanCase;
 	double meanControl;
     char significanceType;
+	char forPCA;
+	char forPval;
+
+
     
     Kmer(int noCases, int noControls);
     ~Kmer();
@@ -431,6 +442,11 @@ void * likelihoodRatio_thread(void *threadid)
 
 	long long int noKmersCases=0, noKmersControls=0;	
 
+	int presentCount=0;
+	double presentRatio=0;
+
+
+
 	for(int k=0;k<noCases;k++)
        {
            noKmersCases+=ht->totalKmerCountsCase[k];
@@ -452,24 +468,46 @@ void * likelihoodRatio_thread(void *threadid)
             meanCase=0;
             meanControl=0;
             mean=0;
-            
+       
+		presentCount=0;	 
+
+     
             for(int k=0;k<noCases;k++)
             {
                 meanCase+=ht->kmers[i][j]->caseCounts[k];
-                
+			if(ht->kmers[i][j]->caseCounts[k]>0)
+			{
+				presentCount++;
+			}                
             }
             for(int k=0;k<noControls;k++)
             {
                 meanControl+=ht->kmers[i][j]->controlCounts[k];
-                
+                if(ht->kmers[i][j]->controlCounts[k]>0)
+			{
+				presentCount++;
+			}	
             }
             
             mean=(meanCase+meanControl)/(double)(noKmersCases+noKmersControls);
-            
+            presentRatio=presentCount/(double)(noCases+noControls);
            
-          
-
-        
+		if(presentRatio>=0.01 && presentRatio<=0.99)
+	     	{
+		 	ht->kmers[i][j]->forPCA='y';
+	     	}
+		else
+		{
+			ht->kmers[i][j]->forPCA='n';
+		}          
+        	if(presentRatio>=0.05)
+	     	{
+		 	ht->kmers[i][j]->forPval='y';
+	     	}
+		else
+		{
+			ht->kmers[i][j]->forPval='n';
+		}
             likelihoodNull=0;
             likelihoodAlt=0;
 
@@ -579,7 +617,33 @@ void * dump_thread(void *threadid)
     {
         for(int j=0;j<ht->kmers[i].size();j++)
         {
-            if(ht->kmers[i][j]->pVal<=pValThreshold)
+
+		// for eigenstrat
+		if(ht->kmers[i][j]->forPCA=='y' && rand()/((double)(RAND_MAX)+1)<0.01)	//ht->kmers[i][j]->pVal<=pValThreshold && rand()/((double)(RAND_MAX)+1)<0.001)
+		{
+			pthread_mutex_lock(&eigenFile_mutex);
+
+
+			fprintf(eigenSNPFile,"%s\t%d\t%lf\t%d\n",getKmer(ht->kmers[i][j]->kmer, kmerString, 31),1,0.0,0);
+
+			for(int k=0;k<noCases;k++)
+            		{
+                		fprintf(eigenGenoFile,"%d\t",ht->kmers[i][j]->caseCounts[k]>0?1:0);
+                
+            		}
+            		for(int k=0;k<noControls;k++)
+            		{
+               		fprintf(eigenGenoFile,"%d\t",ht->kmers[i][j]->controlCounts[k]>0?1:0);
+                
+            		}	
+			fprintf(eigenGenoFile,"\n");
+			pthread_mutex_unlock(&eigenFile_mutex);
+
+		}
+
+
+
+            if(ht->kmers[i][j]->pVal<=pValThreshold && ht->kmers[i][j]->forPval=='y')
             {
                 if(ht->kmers[i][j]->significanceType=='p')
                 {
@@ -605,7 +669,6 @@ void * dump_thread(void *threadid)
 
                 }
                 else if(ht->kmers[i][j]->significanceType=='a')
-
                 {
                //     fprintf(controlFile,"%s\t%d\t%d\n",getKmer(kmers[i][j]->kmer, kmerString, 31),kmers[i][j]->caseCounts[0],kmers[i][j]->controlCounts[0]);
 	
@@ -625,6 +688,7 @@ void * dump_thread(void *threadid)
 			pthread_mutex_unlock(&controlOutFile_mutex);
        	       
                 }
+
                 
             }
         }
@@ -651,6 +715,11 @@ void HashTable::dumpKmers(double sigLevel)
 {
     caseFile=fopen("case_out_wo_bonf.kmerDiff","a");
     controlFile=fopen("control_out_wo_bonf.kmerDiff","a");
+
+	eigenGenoFile=fopen("gwas_eigenstratX.geno","a");
+    	eigenSNPFile=fopen("gwas_eigenstratX.snp","a");
+
+
 	
 	pValThreshold=sigLevel/(double)CUTOFF;    
 
@@ -679,7 +748,10 @@ void HashTable::dumpKmers(double sigLevel)
 	fclose(caseFile);
 	fclose(controlFile);
 
-    
+    	fclose(eigenSNPFile);
+	fclose(eigenGenoFile);
+
+
 }
 
 void HashTable::show()
@@ -906,6 +978,12 @@ int main(int argc, const char * argv[])
 	fclose(caseFile);
 	fclose(controlFile);
 
+	FILE *eigenGenoFile=fopen("gwas_eigenstratX.geno","w");
+    	FILE *eigenSNPFile=fopen("gwas_eigenstratX.snp","w");
+
+	fclose(eigenSNPFile);
+	fclose(eigenGenoFile);
+
 
 
     
@@ -920,6 +998,7 @@ int main(int argc, const char * argv[])
 	countsControls=new unsigned short int[noControls];
 
 	char *line= new char[MAX_REC_LEN];
+	char *line2= new char[MAX_REC_LEN];
     	int MAX_FILE_READ=MAX_REC_LEN/sizeof(line[0]);
 
 
@@ -1049,8 +1128,8 @@ int main(int argc, const char * argv[])
     	controlFile=fopen("control_out_wo_bonf.kmerDiff","r");
 
 
-    FILE *caseFileOut=fopen("case_out_unique.kmerDiff","w");
-    FILE *controlFileOut=fopen("control_out_unique.kmerDiff","w");
+    FILE *caseFileOut=fopen("case_out_w_bonf.kmerDiff","w");
+    FILE *controlFileOut=fopen("control_out_w_bonf.kmerDiff","w");
 
 	FILE *totalKmerFile=fopen("total_kmers.txt","w");
 	fprintf(totalKmerFile,"%lld\n",ht->totalKmers);
@@ -1060,6 +1139,9 @@ int main(int argc, const char * argv[])
 
     	 while(fgets(line, MAX_FILE_READ, caseFile)!=NULL)
         {
+		strcpy(line2,line);
+
+
             	temp=strtok(line,"\t\n ");
             	strcpy(kmerString,temp);
             
@@ -1074,7 +1156,9 @@ int main(int argc, const char * argv[])
 
 		if(pVal<SIG_LEVEL/ht->totalKmers)
 		{
-			fprintf(caseFileOut,"%s\t%d\t%d\n",kmerString,count1,count2);
+//			fprintf(caseFileOut,"%s\t%d\t%d\n",kmerString,count1,count2);
+			fputs(line2,caseFileOut);
+
                
 		}
 	}
@@ -1082,6 +1166,9 @@ int main(int argc, const char * argv[])
 
 	while(fgets(line, MAX_FILE_READ, controlFile)!=NULL)
         {
+		strcpy(line2,line);
+
+
             	temp=strtok(line,"\t\n ");
             	strcpy(kmerString,temp);
             
@@ -1096,15 +1183,15 @@ int main(int argc, const char * argv[])
 
 		if(pVal<SIG_LEVEL/ht->totalKmers)
 		{
-			fprintf(controlFileOut,"%s\t%d\t%d\n",kmerString,count1,count2);
-               
+		//	fprintf(controlFileOut,"%s\t%d\t%d\n",kmerString,count1,count2);
+               	fputs(line2,controlFileOut);
+
 		}
 	}
 
     
     return 0;
 }
-
 
 
 
