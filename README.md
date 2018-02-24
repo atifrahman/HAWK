@@ -13,9 +13,12 @@ make
 
 ## Prerequisites
 
-JELLYFISH (modified version)
-EIGENSTRAT (modified version)
+JELLYFISH (modified version available in supplements)
+
+EIGENSTRAT (modified version available in supplements)
+
 R (with foreach and doParallel packages)
+
 ABYSS 
 
 ## Counting k-mers
