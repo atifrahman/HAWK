@@ -1,0 +1,6 @@
+sratoolkitDir=/home/atif/sratoolkit.2.8.2-1-ubuntu64
+
+for srr in `cat links.txt`
+do
+	$sratoolkitDir/bin/prefetch ${srr}
+done
