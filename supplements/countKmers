@@ -39,7 +39,7 @@ do
 		awk '{print $2"\t"$1}' ${OUTPREFIX}.kmers.hist.csv > ${OUTPREFIX}_tmp
 		mv ${OUTPREFIX}_tmp ${OUTPREFIX}.kmers.hist.csv
 
-		awk -f ${hawkDir}/countTotalKmer.awk ${OUTPREFIX}.kmers.hist.csv >> ${dir}/total_kmers.txt
+		awk -f ${hawkDir}/countTotalKmer.awk ${OUTPREFIX}.kmers.hist.csv >> ${dir}/total_kmer_counts.txt
 
 		CUTOFF=1 
 		echo $CUTOFF > ${OUTPREFIX}_cutoff.csv
