@@ -35,11 +35,11 @@ provided in the 'supplements' folder with HAWK. All of the steps mentioned
 above can be performed by installing this version of JELLYFISH and then 
 running the script 'countKmers' in supplements with necessary modifications.
 This will write the names of sorted k-mer count files in 'sorted_files.txt' 
-and total k-mer count in samples in 'total_kmers.txt'.
+and total k-mer count in samples in 'total_kmer_counts.txt'.
 
 ## Running HAWK
 
-Copy 'sorted_files.txt' and 'total_kmers.txt' corresponding to the samples 
+Copy 'sorted_files.txt' and 'total_kmer_counts.txt' corresponding to the samples 
 into a folder as well as a file named 'gwas_info.txt' containing three columns separated by tabs giving a sample ID, male/female/unknown denoted by M/F/U and Case/Control status of the sample for each sample. For example
 
 ```
