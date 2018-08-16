@@ -13,7 +13,7 @@ cat case.ind control.ind > gwas_eigenstratX.ind
 caseCount=$(cat case_sorted_files.txt | wc -l);
 controlCount=$(cat control_sorted_files.txt | wc -l);
 
-#$hawkDir/hawk $caseCount $controlCount
+$hawkDir/hawk $caseCount $controlCount
 
 if [ "$isDiploid" == "0" ]; then
 	$eigenstratDir/bin/smartpca -V -p $hawkDir/parfile.txt > log_eigen.txt
