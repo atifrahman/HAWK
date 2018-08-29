@@ -1,6 +1,6 @@
 #define HASH_TABLE_LENGTH 50000003
 #define SIG_LEVEL 0.05
-#define CUTOFF 100000000
+#define CUTOFF 10000000
 #define KMER_LENGTH 31
 #define R -1
 #define I -2
