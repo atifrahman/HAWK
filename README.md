@@ -34,6 +34,14 @@ k-mer counting can be done using a modified version of the tool JELLYFISH
 provided in the 'supplements' folder with HAWK. All of the steps mentioned 
 above can be performed by installing this version of JELLYFISH and then 
 running the script 'countKmers' in supplements with necessary modifications.
+
+The version provided assumes reads from each sample is in a separate directory 
+and prefixes of all directories containing reads is 'Reads'. For example reads from
+'sample1', 'sample 2', etc. could be in directories named 'Reads_sample1', 'Reads_sample2', etc.
+It also assumes that the read files are gzipped and have extensions 'fastq.gz'. If the read files 
+are not gzipped please change the 'zcat &ast.fastq.gz' to 'cat &ast.fastq' in line 21 in 'countKmers'. 
+
+
 This will write the names of sorted k-mer count files in 'sorted_files.txt' 
 and total k-mer count in samples in 'total_kmer_counts.txt'.
 
