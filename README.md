@@ -39,7 +39,7 @@ The version provided assumes reads from each sample is in a separate directory
 and prefixes of all directories containing reads is `Reads`. For example reads from
 `sample1`, `sample 2`, etc. could be in directories named `Reads_sample1`, `Reads_sample2`, etc.
 It also assumes that the read files are gzipped and have extensions `fastq.gz`. If the read files 
-are not gzipped please change the `zcat &ast.fastq.gz` to `cat &ast.fastq` in line 21 in 'countKmers'. 
+are not gzipped please change the `zcat *.fastq.gz` to `cat *.fastq` in `line 21` in `countKmers`. 
 
 
 This will write the names of sorted k-mer count files in 'sorted_files.txt' 
