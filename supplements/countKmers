@@ -1,61 +1,121 @@
-CORES=30 #number of cores to use for blast searches
-KMERSIZE=31 # RD:61
+#!/usr/bin/env bash
+set -eo pipefail
 
-#modified from NIKS script
+print_usage()
+{
+    cat <<EOF
+Usage: countKmers [-c CORES] [-h] [-H HAWKDIR] [-J JFDIR] [-k KSIZE]
+                  [-S SORTDIR] [-x FQEXT] readsdir
+  Arguments:
+    readsdir     directory containing reads for each sample; each sample should
+                 have its own sub-directory with 'Reads' as the prefix (for
+                 example 'ReadsSample1', 'ReadsSample2', 'ReadsSample3', etc).
+  Options:
+    -c CORES     number of CPU cores with which to accelerate k-mer counting;
+                 default is 30
+    -h           print this help message and exit
+    -H HAWKDIR   path to the root of the HAWK source code distribution; default
+                 is '..'
+    -k KSIZE     k-mer size; default is 31
+    -J JFDIR     path to the directory containing the modified jellyfish binary;
+                 default is './jellyfish-Hawk/bin'
+    -S SORTDIR   path to the directory containing a GNU coreutils 'sort' binary
+                 with parallel support; default is '/bin'
+    -x FQEXT     extension of FASTQ read data; default is '.fastq.gz'
+  Examples:
+    ./countKmers -c 64 -S /opt/coreutils/bin -x .fastq /scratch/user/myreads
+    ./countKmers -c 32 -k 29 -J /usr/local/bin -x .fq.gz ~/Data/myreads
+EOF
+}
 
-dir=/scratch/atif/1000_genomes/BEB		#directory for read files 
-hawkDir=/scratch/atif/hawk			#directory where hawk is installed
-jellyfishDir=/home/atif/jellyfish-Hawk/bin		#directory where jellyfish is installed
-sortDir=/home/atif/coreutils/deps/bin		#directory where parallel sort is installed
 
-cd ${dir}
+CORES=30
+KMERSIZE=31
+HAWKDIR=..
+JFDIR=./jellyfish-Hawk/bin
+SORTDIR=/bin
+EXT=.fastq.gz
+CATCMD=zcat
 
+while getopts "c:hH:J:k:S:x:" OPTION
+do
+    case $OPTION in
+        c)
+            CORES=$OPTARG
+            ;;
+        h)
+            print_usage
+            exit 0
+            ;;
+        H)
+            HAWKDIR=$OPTARG
+            ;;
+        J)
+            JFDIR=$OPTARG
+            ;;
+        k)
+            KMERSIZE=$OPTARG
+            ;;
+        S)
+            SORTDIR=$OPTARG
+            ;;
+        x)
+            EXT=$OPTARG
+            if [[ $EXT == *.gz ]]; then
+                CATCMD=zcat
+            elif [[ $EXT == *.bz2 ]]; then
+                CATCMD="bunzip2 -c"
+            else
+                CATCMD=cat
+            fi
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+readsdir=$1
+if [[ ! -d $readsdir ]]; then
+    echo -e "\n"
+    echo "ERROR: directory '$readsdir' does not exist; please provide location of reads" >&2
+    print_usage
+    exit 1
+fi
+
+
+cd ${readsdir}
 for file in `ls -d Reads*`
 do
 	OUTPREFIX=$file
-	
 	cd ${file}
-
 	mkdir ${OUTPREFIX}_kmers
-
-	${jellyfishDir}/jellyfish count -C -o ${OUTPREFIX}_kmers/tmp -m ${KMERSIZE} -t ${CORES} -s 20G <( zcat *.fastq.gz ) #change if not gzipped
-
+	${JFDIR}/jellyfish count -C -o ${OUTPREFIX}_kmers/tmp -m ${KMERSIZE} -t ${CORES} -s 20G <( $CATCMD *$EXT )
 	COUNT=$(ls ${OUTPREFIX}_kmers/tmp* |wc -l)
-
 	if [ $COUNT -eq 1 ]
 	then
  		mv ${OUTPREFIX}_kmers/tmp_0 ${OUTPREFIX}_kmers_jellyfish
 	else
-		${jellyfishDir}/jellyfish merge -o ${OUTPREFIX}_kmers_jellyfish ${OUTPREFIX}_kmers/tmp*
+		${JFDIR}/jellyfish merge -o ${OUTPREFIX}_kmers_jellyfish ${OUTPREFIX}_kmers/tmp*
 	fi
 	rm -rf ${OUTPREFIX}_kmers
-	
 	COUNT=$(ls ${OUTPREFIX}_kmers_jellyfish |wc -l)
 
 	if [ $COUNT -eq 1 ]
 	then
-
-		${jellyfishDir}/jellyfish histo -f -o ${OUTPREFIX}.kmers.hist.csv -t ${CORES} ${OUTPREFIX}_kmers_jellyfish
+		${JFDIR}/jellyfish histo -f -o ${OUTPREFIX}.kmers.hist.csv -t ${CORES} ${OUTPREFIX}_kmers_jellyfish
 		awk '{print $2"\t"$1}' ${OUTPREFIX}.kmers.hist.csv > ${OUTPREFIX}_tmp
 		mv ${OUTPREFIX}_tmp ${OUTPREFIX}.kmers.hist.csv
 
-		awk -f ${hawkDir}/countTotalKmer.awk ${OUTPREFIX}.kmers.hist.csv >> ${dir}/total_kmer_counts.txt
+		awk -f ${HAWKDIR}/countTotalKmer.awk ${OUTPREFIX}.kmers.hist.csv >> ${dir}/total_kmer_counts.txt
 
-		CUTOFF=1 
+		CUTOFF=1
 		echo $CUTOFF > ${OUTPREFIX}_cutoff.csv
 
+		${JFDIR}/jellyfish dump -c -L `expr $CUTOFF + 1` ${OUTPREFIX}_kmers_jellyfish > ${OUTPREFIX}_kmers.txt
+		${SORTDIR}/sort --parallel=${CORES} -n -k 1 ${OUTPREFIX}_kmers.txt > ${OUTPREFIX}_kmers_sorted.txt
 
-		${jellyfishDir}/jellyfish dump -c -L `expr $CUTOFF + 1` ${OUTPREFIX}_kmers_jellyfish > ${OUTPREFIX}_kmers.txt 
-		${sortDir}/sort --parallel=${CORES} -n -k 1 ${OUTPREFIX}_kmers.txt > ${OUTPREFIX}_kmers_sorted.txt
-	
-		rm ${OUTPREFIX}_kmers_jellyfish	
-		rm ${OUTPREFIX}_kmers.txt		
-			
+		rm ${OUTPREFIX}_kmers_jellyfish
+		rm ${OUTPREFIX}_kmers.txt
+
 		echo "${dir}/Reads_${OUTPREFIX}/${OUTPREFIX}_kmers_sorted.txt" >> ${dir}/sorted_files.txt
-		
 	fi
-
-
 	cd ..
-
 done
