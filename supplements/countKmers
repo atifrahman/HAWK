@@ -13,6 +13,7 @@ Usage: countKmers [-c CORES] [-h] [-H HAWKDIR] [-J JFDIR] [-k KSIZE]
   Options:
     -c CORES     number of CPU cores with which to accelerate k-mer counting;
                  default is 30
+    -f CUTOFF    only keep k-mers with abundance > CUTOFF; default is 1
     -h           print this help message and exit
     -H HAWKDIR   path to the root of the HAWK source code distribution; default
                  is '..'
@@ -24,30 +25,38 @@ Usage: countKmers [-c CORES] [-h] [-H HAWKDIR] [-J JFDIR] [-k KSIZE]
     -x FQEXT     extension of FASTQ read data; default is '.fastq.gz'
   Examples:
     ./countKmers -c 64 -S /opt/coreutils/bin -x .fastq /scratch/user/myreads
-    ./countKmers -c 32 -k 29 -J /usr/local/bin -x .fq.gz ~/Data/myreads
+    ./countKmers -c 32 -k 29 -J /usr/local/bin ~/Data/myreads
 EOF
 }
 
 
 CORES=30
-KMERSIZE=31
+CUTOFF=1
 HAWKDIR=..
 JFDIR=./jellyfish-Hawk/bin
+KMERSIZE=31
 SORTDIR=/bin
 EXT=.fastq.gz
 CATCMD=zcat
 
-while getopts "c:hH:J:k:S:x:" OPTION
+while getopts "c:f:hH:J:k:S:x:" OPTION
 do
     case $OPTION in
         c)
             CORES=$OPTARG
+            ;;
+        f)
+            CUTOFF=$OPTARG
             ;;
         h)
             print_usage
             exit 0
             ;;
         H)
+            if [[ ! -d $OPTARG ]]; then
+                echo "directory '$OPTARG' does not exist" >&2
+                exit 1
+            fi
             HAWKDIR=$OPTARG
             ;;
         J)
@@ -79,11 +88,28 @@ if [[ ! -d $readsdir ]]; then
     print_usage
     exit 1
 fi
+HAWKDIR=$(cd $HAWKDIR && pwd)
+JFDIR=$(cd $JFDIR && pwd)
+SORTDIR=$(cd $SORTDIR && pwd)
+
+
+echo "-------------------------------------------------------------------------"
+echo "[HAWK::countKmers] Configuration:"
+echo "    CORES=$CORES"
+echo "    CUTOFF=$CUTOFF"
+echo "    HAWKDIR=$HAWKDIR"
+echo "    JFDIR=$JFDIR"
+echo "    KMERSIZE=$KMERSIZE"
+echo "    SORTDIR=$SORTDIR"
+echo "    EXT=$EXT"
+echo "    CATCMD=$CATCMD"
+echo "-------------------------------------------------------------------------"
 
 
 cd ${readsdir}
 for file in `ls -d Reads*`
 do
+    echo -n "Processing '$file'..."
 	OUTPREFIX=$file
 	cd ${file}
 	mkdir ${OUTPREFIX}_kmers
@@ -104,18 +130,17 @@ do
 		awk '{print $2"\t"$1}' ${OUTPREFIX}.kmers.hist.csv > ${OUTPREFIX}_tmp
 		mv ${OUTPREFIX}_tmp ${OUTPREFIX}.kmers.hist.csv
 
-		awk -f ${HAWKDIR}/countTotalKmer.awk ${OUTPREFIX}.kmers.hist.csv >> ${dir}/total_kmer_counts.txt
+		awk -f ${HAWKDIR}/countTotalKmer.awk ${OUTPREFIX}.kmers.hist.csv >> ${readsdir}/total_kmer_counts.txt
 
-		CUTOFF=1
 		echo $CUTOFF > ${OUTPREFIX}_cutoff.csv
-
-		${JFDIR}/jellyfish dump -c -L `expr $CUTOFF + 1` ${OUTPREFIX}_kmers_jellyfish > ${OUTPREFIX}_kmers.txt
+		${JFDIR}/jellyfish dump -c -L $(expr $CUTOFF + 1) ${OUTPREFIX}_kmers_jellyfish > ${OUTPREFIX}_kmers.txt
 		${SORTDIR}/sort --parallel=${CORES} -n -k 1 ${OUTPREFIX}_kmers.txt > ${OUTPREFIX}_kmers_sorted.txt
 
 		rm ${OUTPREFIX}_kmers_jellyfish
 		rm ${OUTPREFIX}_kmers.txt
 
-		echo "${dir}/Reads_${OUTPREFIX}/${OUTPREFIX}_kmers_sorted.txt" >> ${dir}/sorted_files.txt
+		echo "${readsdir}/Reads_${OUTPREFIX}/${OUTPREFIX}_kmers_sorted.txt" >> ${readsdir}/sorted_files.txt
 	fi
 	cd ..
+    echo "done!"
 done

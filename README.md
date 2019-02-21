@@ -32,8 +32,9 @@ line contains an integer representing the k-mer and its count separated
 by a space. The integer representation is given by using 0 for 'A', 
 1 for 'C', 2 for 'G' and 3 for 'T'.
 
-k-mer counting can be done using JELLYFISH v2, or a modified version of JELLYFISH v1
-provided in the 'supplements/' folder with HAWK. All of the steps mentioned 
+k-mer counting can be done using a modified version of the tool JELLYFISH v1
+provided in the 'supplements/' folder with HAWK
+(modifications shown in `supplements/dump_numeric.patch`). All of the steps mentioned 
 above can be performed by installing this version of JELLYFISH and then 
 running the script 'countKmers' in supplements with necessary modifications.
 
