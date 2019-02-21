@@ -4,7 +4,7 @@ set -eo pipefail
 print_usage()
 {
     cat <<EOF
-Usage: countKmers [-c CORES] [-h] [-H HAWKDIR] [-J JFDIR] [-k KSIZE]
+Usage: countKmers [-c CORES] [-f CUTOFF] [-h] [-H HAWKDIR] [-J JFDIR] [-k KSIZE]
                   [-S SORTDIR] [-x FQEXT] readsdir
   Arguments:
     readsdir     directory containing reads for each sample; each sample should
