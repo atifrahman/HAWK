@@ -21,6 +21,8 @@ R (with foreach and doParallel packages)
 
 ABYSS 
 
+GNU `sort` with parallel support
+
 ## Counting k-mers
 
 The first step in the pipeline is to count k-mers in each sample, find 
