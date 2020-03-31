@@ -14,7 +14,9 @@ input <- read.table("gwas_eigenstratX.ind");
 Y <- matrix(nrow=nrow(Z),ncol=1);
 cov <- matrix(nrow=nrow(Z),ncol=1);
 
-totals <- read.table("total_kmer_counts.txt");
+case_counts <- read.table("case_total_kmers.txt", header=FALSE)
+control_counts <- read.table("control_total_kmers.txt", header=FALSE)
+totals <- rbind(case_counts, control_counts)
 
 counts<- vector(length=length(Y));
 
