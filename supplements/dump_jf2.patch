@@ -1,0 +1,20 @@
+diff --git a/sub_commands/dump_main.cc b/sub_commands/dump_main.cc
+index 4acf3da..3b22444 100644
+--- a/sub_commands/dump_main.cc
++++ b/sub_commands/dump_main.cc
+@@ -40,13 +40,13 @@ void dump(iterator& it, std::ostream &out,
+     while(it.next()) {
+       if(it.val() < lower_count || it.val() > upper_count)
+         continue;
+-      out << it.key() << spacer << it.val() << "\n";
++      out << *it.key().data() << spacer << it.val() << '\n';
+     }
+   } else {
+     while(it.next()) {
+       if(it.val() < lower_count || it.val() > upper_count)
+         continue;
+-      out << ">" << it.val() << "\n" << it.key() << "\n";
++      out << '>' << it.val() << '\n' << *it.key().data() << '\n';
+     }
+   }
+ }
