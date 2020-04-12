@@ -1,0 +1,62 @@
+hawkDir=/home/atif/exp_hawk_tool/HAWK
+eigenstratDir=/home/atif/exp_hawk_tool/EIG6.0.1-Hawk
+isDiploid=1
+
+noInd=$(cat sorted_files.txt | wc -l);
+
+# variable to control confounder correction
+noPC=2
+noThread=1
+useSexCounfounder=False
+covFile=""
+
+
+$hawkDir/preProcess.out
+
+cat case_total_kmers.txt control_total_kmers.txt > gwas_eigenstratX.total
+cat case.ind control.ind > gwas_eigenstratX.ind
+
+caseCount=$(cat case_sorted_files.txt | wc -l);
+controlCount=$(cat control_sorted_files.txt | wc -l);
+
+$hawkDir/hawk.out $caseCount $controlCount > hawk_out.txt
+
+
+
+if [ "$isDiploid" == "0" ]; then
+	$eigenstratDir/bin/smartpca -V -p $hawkDir/parfile.txt > log_eigen.txt
+else
+	$eigenstratDir/bin/smartpca -p $hawkDir/parfile.txt > log_eigen.txt
+fi
+
+$eigenstratDir/bin/evec2pca.perl 10 gwas_eigenstrat.evec gwas_eigenstratX.ind gwas_eigenstrat.pca
+
+tail -${noInd} gwas_eigenstrat.pca > pcs.evec
+
+sort -g  -k 4 -t $'\t' case_out_w_bonf.kmerDiff > case_out_w_bonf_sorted.kmerDiff
+head -200000 case_out_w_bonf_sorted.kmerDiff > case_out_w_bonf_top.kmerDiff
+
+sort -g  -k 4 -t $'\t' control_out_w_bonf.kmerDiff > control_out_w_bonf_sorted.kmerDiff
+head -200000 control_out_w_bonf_sorted.kmerDiff > control_out_w_bonf_top.kmerDiff
+
+if [ "$useSexCounfounder" == "True" ]; then
+	sex_confounder_arg="-s"
+fi
+
+if [ "$covFile" == "" ]; then
+	$hawkDir/log_reg_case.out -t $noThread $sex_confounder_arg -p $noPC > pvals_case_top.txt
+	$hawkDir/log_reg_control.out -t $noThread $sex_confounder_arg -p $noPC > pvals_control_top.txt
+else
+	$hawkDir/log_reg_case.out -t $noThread $sex_confounder_arg -p $noPC -c $covFile > pvals_case_top.txt
+	$hawkDir/log_reg_control.out -t $noThread $sex_confounder_arg -p $noPC -c $covFile > pvals_control_top.txt
+fi
+
+
+
+paste pvals_case_top.txt case_out_w_bonf_top.kmerDiff  > pvals_case_top_merged.txt
+sort -g -k 1 -t $'\t' pvals_case_top_merged.txt > pvals_case_top_merged_sorted.txt 
+
+paste pvals_control_top.txt control_out_w_bonf_top.kmerDiff  > pvals_control_top_merged.txt
+sort -g -k 1 -t $'\t' pvals_control_top_merged.txt > pvals_control_top_merged_sorted.txt
+
+$hawkDir/convertToFasta_bf_correction.out

@@ -1,0 +1,16 @@
+hawkDir=. # /scratch/atif/hawk
+
+filename=sequence.txt
+
+isCaseSequence=1	# set to 0 if sequence is associated with control
+
+caseCount=$(cat case_sorted_files.txt | wc -l);
+controlCount=$(cat control_sorted_files.txt | wc -l);
+
+
+if [ $isCaseSequence -eq 1 ]
+then
+	${hawkDir}/kmerStats.out 1 $caseCount $controlCount $filename
+else
+	${hawkDir}/kmerStats.out 0 $caseCount $controlCount $filename
+fi
