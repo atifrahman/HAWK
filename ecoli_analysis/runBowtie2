@@ -1,0 +1,10 @@
+bowtie2Dir=~/bowtie2-2.4.1-linux-x86_64 	# bowtie 2 directory  
+
+referenceFile=plasmid.fasta 	# name of reference file in fasta format
+sequenceFile=case_kmers.fasta	# name of file with sequences found by HAWK in fasta format
+outputFile=test.sam	# output filename
+indexFile=bowtie2index		# name of bowtie index file
+
+
+$bowtie2Dir/bowtie2-build $referenceFile $indexFile
+$bowtie2Dir/bowtie2 -x $indexFile -f $sequenceFile --no-unal --no-hd -S $outputFile
