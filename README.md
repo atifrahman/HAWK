@@ -104,7 +104,8 @@ By default HAWK uses first two principal components found using EIGENSTRAT, sex 
 The following variables in the script `runHawk` can be used to control confounding factor correction.
 
 ```
-noPc      The number of principal components from EIGENSTRAT to be used as 			  confounders. Allowed values are from 1 to 10. Default 2.
+noPc      The number of principal components from EIGENSTRAT to be used as confounders. 
+          Allowed values are from 1 to 10. Default 2.
 
 useSexConfounder  True or False. Set True if sex information 
                    from gwas_info.txt will be used as confounder.
