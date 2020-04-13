@@ -6,7 +6,7 @@ OBJECT_FILE=${CPP_FOLDER}/*.o
 
 
 all: hawk.out  preProcess.out log_reg_case.out log_reg_control.out bonf_fasta.out\
-     kmersearch.out kmersummary.out convertToFasta_bf_correction.out convertToFasta_bh_correction.out\
+     kmersearch.out kmersummary.out convertToFasta.out convertToFasta_bh_correction.out\
 	 kmerStats.out
 
 hawk.out: hawk.o ${OBJECT_FILE}
@@ -30,7 +30,7 @@ kmersearch.out: kmersearch.o
 kmersummary.out: kmersummary.o
 	g++ $^ -o $@
 
-convertToFasta_bf_correction.out: convertToFasta_bf_correction.o
+convertToFasta.out: convertToFasta.o
 	g++ $^ -o $@
 
 convertToFasta_bh_correction.out: convertToFasta_bh_correction.o
@@ -60,7 +60,7 @@ kmersearch.o: kmersearch.cpp
 kmersummary.o: kmersummary.cpp
 	g++ $^ -c -o $@
 
-convertToFasta_bf_correction.o: convertToFasta_bf_correction.cpp
+convertToFasta.o: convertToFasta.cpp
 	g++ $^ -c -o $@
 
 convertToFasta_bh_correction.o: convertToFasta_bh_correction.cpp
