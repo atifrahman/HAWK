@@ -17,7 +17,7 @@ The modifications are described in detail in the [preprint](https://www.biorxiv.
 To install HAWK run (X.Y.Z is the version)
 
 ```
-tar xf hawk-X.Y.Z-beta.tar
+tar xzf hawk-X.Y.Z-beta.tar.gz
 cd hawk-X.Y.Z-beta
 make
 ```
