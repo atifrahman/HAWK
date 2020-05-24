@@ -101,7 +101,7 @@ respectively.
 
 ## Changing default confounders
 
-By default HAWK uses first two principal components found using EIGENSTRAT, sex of samples and sequencing depth in the form of total k-mer counts as confounders. To change the number of principal components to be used as confounders, change the value of the variable `noPC` in the script `runHAWK` .
+By default HAWK uses first two principal components found using EIGENSTRAT, sex of samples and sequencing depth in the form of total k-mer counts as confounders. To change the number of principal components to be used as confounders, change the value of the variable `noPC` in the script `runHawk` .
 
 The following variables in the script `runHawk` can be used to control confounding factor correction.
 
@@ -130,7 +130,7 @@ noThread  # of thread used in correction. To speed up the
 #### Additional confounder file format
 If there are additional confounders, they need to be specified in a separate file. The file <strong>must</strong> be in the following format:  
 * Number of lines in the file must be equal to the number of read samples used to run HAWK (i.e. in gwas_info.txt). 
-* In each line, the covariates corresponding to a sample must be specified. The covariates must be numbers separated by tabs or spaces spaces.
+* In each line, the covariates corresponding to a sample must be specified. The covariates must be numbers separated by tabs or spaces.
 * All samples (i.e. for all lines) should contain equal number of entries (i.e. number of columns). No line can have missing entries, other wise program will not use them correctly.
 
 For example, if number of samples is 2 and we like to include 3 additional covariates per sample then the file should be as below:
