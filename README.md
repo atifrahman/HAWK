@@ -148,7 +148,7 @@ after `runHawk` is executed successfully.  The outputs will be in `case_kmers_bh
 
 ## Finding sex specific k-mers
 
-To find sex specific k-mers using HAWK, in the file 'gwas_info.txt' file, the first column will contain sample IDs, second column must contain U's and third column will contain Case/Control status depending on whether the sample is Male/Female. For example if SRR3050845 and 
+To find sex specific k-mers using HAWK, in the file 'gwas_info.txt', the first column will contain sample IDs, second column must contain U's and third column will contain Case/Control status depending on whether the sample is Male/Female. For example if SRR3050845 and 
 SRR3050847 are female and SRR3050846 is male, the file will be
 
 ```
