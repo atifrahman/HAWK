@@ -7,7 +7,7 @@ noInd=$(cat sorted_files.txt | wc -l);
 # variable to control confounder correction
 noPC=2
 noThread=1
-useSexCounfounder=False
+useSexCounfounder=True
 covFile=""
 
 
