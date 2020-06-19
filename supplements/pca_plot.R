@@ -22,7 +22,7 @@ names(df) <- c("SampleID", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8
 
 setEPS()
 postscript('pca_plot.eps')
-plot(df[,PC1+1], df[,PC2+1],  col = df[,12], pch=19, main="PCA plot",xlab="PC1",ylab="PC2");
+plot(df[,PC1+1], df[,PC2+1],  col = df[,12], pch=19, main="PCA plot",xlab=names(df)[PC1+1],ylab=names(df)[PC2+1]);
 
 legend("topright", pch=19, col=c(1,2), c("Case", "Control"));
 dev.off()
