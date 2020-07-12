@@ -34,10 +34,10 @@ $eigenstratDir/bin/evec2pca.perl 10 gwas_eigenstrat.evec gwas_eigenstratX.ind gw
 tail -${noInd} gwas_eigenstrat.pca > pcs.evec
 
 sort -g  -k 4 -t $'\t' case_out_w_bonf.kmerDiff > case_out_w_bonf_sorted.kmerDiff
-head -200000 case_out_w_bonf_sorted.kmerDiff > case_out_w_bonf_top.kmerDiff
+mv case_out_w_bonf_sorted.kmerDiff case_out_w_bonf_top.kmerDiff
 
 sort -g  -k 4 -t $'\t' control_out_w_bonf.kmerDiff > control_out_w_bonf_sorted.kmerDiff
-head -200000 control_out_w_bonf_sorted.kmerDiff > control_out_w_bonf_top.kmerDiff
+mv control_out_w_bonf_sorted.kmerDiff control_out_w_bonf_top.kmerDiff
 
 if [ "$useSexCounfounder" == "True" ]; then
 	sex_confounder_arg="-s"
