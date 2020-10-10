@@ -1,7 +1,7 @@
 library(foreach)
 library(doParallel)
 
-cl<-makeCluster(1)
+cl<-makeCluster(16)
 registerDoParallel(cl)
 
 
