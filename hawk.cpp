@@ -500,7 +500,7 @@ void * likelihoodRatio_thread(void *threadid)
 		{
 			ht->kmers[i][j]->forPCA='n';
 		}          
-        	if(presentRatio>=0.05)
+        	if(presentRatio>=0.01)
 	     	{
 		 	ht->kmers[i][j]->forPval='y';
 	     	}
