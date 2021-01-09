@@ -1,6 +1,11 @@
-# HAWK 1.6.0
+# HAWK 1.7.0
 
 Hitting associations with k-mers
+
+## Modifications in version 1.7.0 
+
+- Implemented IRLS instead of Newton-Raphson for logistic regression, and scaled feature values to fix convergence issues 
+
 
 ## Modifications in versions 1.6.0 and 1.5.0 
 
