@@ -18,7 +18,7 @@ using namespace std;
 
 #include "specialfunctions.h"
 
-#define VERSION "1.5.0-beta"
+#define VERSION "1.6.0-beta"
 
 #define MAX_REC_LEN 10240
 
