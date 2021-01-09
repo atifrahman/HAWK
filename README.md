@@ -1,8 +1,8 @@
-# HAWK 1.5.0
+# HAWK 1.6.0
 
 Hitting associations with k-mers
 
-## Modifications in version 1.5.0
+## Modifications in versions 1.6.0 and 1.5.0 
 
 - Confounder correction step has been reimplemented in C++ to improve speed and flexibility
 - A bug related to order of samples in confounder factor correction has been fixed
@@ -10,7 +10,7 @@ Hitting associations with k-mers
 - Support for Jellyfish 2 added
 - Stats lookup has been reimplemented in C++
 
-The modifications are described in detail in the [preprint](https://www.biorxiv.org/content/10.1101/2020.04.14.040675v1)
+The modifications are described in detail in the [paper](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0245058)
 
 ## Installation
 
