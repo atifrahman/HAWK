@@ -11,7 +11,7 @@ useSexCounfounder=True
 covFile=""
 
 
-$hawkDir/preProcess.out
+$hawkDir/preProcess
 
 cat case_total_kmers.txt control_total_kmers.txt > gwas_eigenstratX.total
 cat case.ind control.ind > gwas_eigenstratX.ind
@@ -19,7 +19,7 @@ cat case.ind control.ind > gwas_eigenstratX.ind
 caseCount=$(cat case_sorted_files.txt | wc -l);
 controlCount=$(cat control_sorted_files.txt | wc -l);
 
-$hawkDir/hawk.out $caseCount $controlCount > hawk_out.txt
+$hawkDir/hawk $caseCount $controlCount > hawk_out.txt
 
 
 
@@ -44,11 +44,11 @@ if [ "$useSexCounfounder" == "True" ]; then
 fi
 
 if [ "$covFile" == "" ]; then
-	$hawkDir/log_reg_case.out -t $noThread $sex_confounder_arg -p $noPC > pvals_case_top.txt
-	$hawkDir/log_reg_control.out -t $noThread $sex_confounder_arg -p $noPC > pvals_control_top.txt
+	$hawkDir/log_reg_case -t $noThread $sex_confounder_arg -p $noPC > pvals_case_top.txt
+	$hawkDir/log_reg_control -t $noThread $sex_confounder_arg -p $noPC > pvals_control_top.txt
 else
-	$hawkDir/log_reg_case.out -t $noThread $sex_confounder_arg -p $noPC -c $covFile > pvals_case_top.txt
-	$hawkDir/log_reg_control.out -t $noThread $sex_confounder_arg -p $noPC -c $covFile > pvals_control_top.txt
+	$hawkDir/log_reg_case -t $noThread $sex_confounder_arg -p $noPC -c $covFile > pvals_case_top.txt
+	$hawkDir/log_reg_control -t $noThread $sex_confounder_arg -p $noPC -c $covFile > pvals_control_top.txt
 fi
 
 
@@ -59,4 +59,4 @@ sort -g -k 1 -t $'\t' pvals_case_top_merged.txt > pvals_case_top_merged_sorted.t
 paste pvals_control_top.txt control_out_w_bonf_top.kmerDiff  > pvals_control_top_merged.txt
 sort -g -k 1 -t $'\t' pvals_control_top_merged.txt > pvals_control_top_merged_sorted.txt
 
-$hawkDir/convertToFasta_bf_correction.out
+$hawkDir/convertToFasta_bf_correction

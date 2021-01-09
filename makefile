@@ -5,38 +5,38 @@ CPP_FILE=${CPP_FOLDER}/*.cpp
 OBJECT_FILE=${CPP_FOLDER}/*.o
 
 
-all: hawk.out  preProcess.out log_reg_case.out log_reg_control.out bonf_fasta.out\
-     kmersearch.out kmersummary.out convertToFasta_bf_correction.out convertToFasta_bh_correction.out\
-	 kmerStats.out
+all: hawk preProcess log_reg_case log_reg_control bonf_fasta\
+     kmersearch kmersummary convertToFasta_bf_correction convertToFasta_bh_correction\
+	 kmerStats
 
-hawk.out: hawk.o ${OBJECT_FILE}
+hawk: hawk.o ${OBJECT_FILE}
 	g++ $^ ${CPP_FLAG} -o $@
 
-preProcess.out: preProcess.o
+preProcess: preProcess.o
 	g++ $^ -o $@
 
-log_reg_case.out: log_reg_case.o ${OBJECT_FILE}
+log_reg_case: log_reg_case.o ${OBJECT_FILE}
 	g++ $^  ${CPP_FLAG} -o $@
 
-log_reg_control.out: log_reg_control.o ${OBJECT_FILE}
+log_reg_control: log_reg_control.o ${OBJECT_FILE}
 	g++ $^ ${CPP_FLAG} -o $@
 
-bonf_fasta.out: bonf_fasta.o
+bonf_fasta: bonf_fasta.o
 	g++ $^ -o $@
 
-kmersearch.out: kmersearch.o
+kmersearch: kmersearch.o
 	g++ $^ -o $@
 
-kmersummary.out: kmersummary.o
+kmersummary: kmersummary.o
 	g++ $^ -o $@
 
-convertToFasta_bf_correction.out: convertToFasta_bf_correction.o
+convertToFasta_bf_correction: convertToFasta_bf_correction.o
 	g++ $^ -o $@
 
-convertToFasta_bh_correction.out: convertToFasta_bh_correction.o
+convertToFasta_bh_correction: convertToFasta_bh_correction.o
 	g++ $^ -o $@
 
-kmerStats.out: kmerStats.o
+kmerStats: kmerStats.o
 	g++ $^ -o $@
 
 hawk.o: hawk.cpp

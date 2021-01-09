@@ -10,7 +10,7 @@ controlCount=$(cat control_sorted_files.txt | wc -l);
 
 if [ $isCaseSequence -eq 1 ]
 then
-	${hawkDir}/kmerStats.out 1 $caseCount $controlCount $filename
+	${hawkDir}/kmerStats 1 $caseCount $controlCount $filename
 else
-	${hawkDir}/kmerStats.out 0 $caseCount $controlCount $filename
+	${hawkDir}/kmerStats 0 $caseCount $controlCount $filename
 fi

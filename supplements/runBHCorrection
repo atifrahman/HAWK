@@ -1,3 +1,3 @@
 hawkDir=/home/atif/exp_hawk_tool/HAWK
 
-$hawkDir/convertToFasta_bh_correction.out
+$hawkDir/convertToFasta_bh_correction

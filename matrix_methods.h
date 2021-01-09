@@ -18,6 +18,18 @@ D_matrix from_vector_to_D(std::vector<double>x){
     return dummy;
 }
 
+
+void printMatrix(D_matrix mm){
+    for(size_t i = 0; i < mm.size(); ++i){
+        for(size_t j = 0; j < mm[0].size(); ++j){
+            cerr << setw(10) << mm[i][j] << "\t";
+        }
+        cerr << endl;
+    }
+    cerr << endl;
+    return;
+}
+
 D_matrix initNewMatrix(int r, int c, double val){
 
     D_matrix newMat;
@@ -85,13 +97,6 @@ D_matrix multiply(D_matrix m1, D_matrix m2){
     return ans;
 }
 
-// D_matrix inverse(D_matrix matOriginal, int n, bool &singular){
-//     D_matrix matLower, matUpper;
-//     luDecomposition(matOriginal, n, matLower, matUpper);
-
-//     return inverseLU(matLower, matUpper, n, singular);
-// }
-
 // Doolittle algorithm
 void luDecomposition(D_matrix matOriginal, int n, D_matrix &matLower, D_matrix &matUpper) { 
     
@@ -131,7 +136,7 @@ void luDecomposition(D_matrix matOriginal, int n, D_matrix &matLower, D_matrix &
     } 
 } 
 
-D_matrix inverse(D_matrix matOriginal, int n, bool &singular){
+D_matrix inverse(D_matrix matOriginal, int n, bool &singular, bool &nan){
 
     D_matrix matLower, matUpper;
     luDecomposition(matOriginal, n, matLower, matUpper);
@@ -182,23 +187,16 @@ D_matrix inverse(D_matrix matOriginal, int n, bool &singular){
             matInverse[j][inverse_col] = x[j];
         }
     }
-
-    if(det == 0){
+	if(det == 0){
         singular = true;
-    } else {
+    } else if(std::isnan(det)){
+		nan = true;
+	}
+    else {
         singular = false;
+        nan = false;
     }
 
     return matInverse;
 }
 
-void printMatrix(D_matrix mm){
-    for(size_t i = 0; i < mm.size(); ++i){
-        for(size_t j = 0; j < mm[0].size(); ++j){
-            cout << setw(10) << mm[i][j] << "\t";
-        }
-        cout << endl;
-    }
-    cout << endl;
-    return;
-}

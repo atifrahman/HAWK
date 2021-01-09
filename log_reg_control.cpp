@@ -11,8 +11,6 @@
 #define eps 1e-30
 
 #define PCA_COUNT 10
-//#define NULL_MODEL_FEATURE_COUNT 3
-//#define ALT_MODEL_FEATURE_COUNT 4
 #define MAX_LINE_LENGTH 512
 #define CLASS_NAME_LENGTH 256
 #define CLASS_NAME1 "Case"
@@ -21,7 +19,7 @@
 #define FEMALE "F"
 #define CHUNK_SIZE 10000
 #define GENDER_INFO_FILE_NAME "gwas_info.txt"
-// #define DEBUG
+//#define DEBUG
 
 
 using namespace std;
@@ -45,6 +43,7 @@ ifstream gender_info_file;
 // These variables are global to ease the passing to multiple threads
 int start_indx;
 int num_of_thread;
+int current_chunk_no;
 int PC;
 int cov_count;
 string covfile;
@@ -120,7 +119,7 @@ int main(int argc,char **argv)
     }
 
     learn_rate = 0.1; 
-    mx_iter = 25;
+    mx_iter = 100;
 
     unsigned int nrow = find_row_count();
 
@@ -130,7 +129,7 @@ int main(int argc,char **argv)
     std::vector<double>RAWC;
     totals = std::vector<unsigned long long int>(nrow);
     #ifdef DEBUG
-    std::vector<int> gender_info_ref(nrow);
+    std::vector<int> gender_info_ref;
     #endif
 	for(unsigned int l=0;l<Y.size();l++)
     {
@@ -199,7 +198,7 @@ int main(int argc,char **argv)
 	{
 		totals[l+case_totals.size()] = control_totals[l];
 	}
-	
+
 	//release the file connections
     feature_z_file.close();
     ind_file.close();
@@ -228,11 +227,10 @@ int main(int argc,char **argv)
 	gender_info_file.clear(); // needed before seekg if not c++11
     gender_info_file.seekg(0,ios::beg); 
 
-
     //reading covariate file...
     //like Z, i dunno how much PC is there
     if((int)covfile.size()>0){
-    	double cc;
+		double cc;
     	while(cov_file>>cc){
     		RAWC.push_back(cc);
     	}
@@ -248,7 +246,7 @@ int main(int argc,char **argv)
     	}
     	cov_count = sz/nrow;
     	cov_file.close();
-    	
+
     	// now store them in sequence according to gwas_eigenstratX.ind
 		// first all case samples (stably sort) then the control samples (stably sort) information are filled
 		// inside C 
@@ -270,7 +268,7 @@ int main(int argc,char **argv)
 			C_fillup_indx++;
 		}
     }
-    
+
     // similarly read gender covariate
     // reading gender covariate from gender info file of each read seq
     // assumption is same no. of line corresponds to same read seq. both in feature_z file
@@ -281,7 +279,7 @@ int main(int argc,char **argv)
     if((int)gender_info_file_name.size()>0){
 		std::vector<int> gender_info_tmp(nrow);
 		gender_info = std::vector<int>(nrow);
-		
+
 		char token[512];
 		for(int line_no=0;line_no < nrow;line_no++){
 			gender_info_file>>token;
@@ -297,7 +295,7 @@ int main(int argc,char **argv)
 
 			gender_info_file>>token;
 		}
-		
+
 		int gender_fillup_indx = 0;
 		for(int i = 0; i<case_indx_info.size(); ++i){
 			int indx = case_indx_info[i];
@@ -310,8 +308,6 @@ int main(int argc,char **argv)
 			gender_fillup_indx++;
 		}		
 	}
-
-    
 
     #ifdef DEBUG
     cout<<"gender infor file name "<<gender_info_file_name<<std::endl;
@@ -340,7 +336,7 @@ int main(int argc,char **argv)
         cout<<totals[l]<<' ';
     }
     cout<<std::endl;
-    
+
     cout<<"covariate count " << cov_count <<std::endl;
     for(int i=0;i<C.size();i++)
     {
@@ -350,15 +346,15 @@ int main(int argc,char **argv)
     	std::cout<<std::endl;
     }
     cout<<std::endl;
-    
+
     if(case_indx_info.size() + control_indx_info.size() == C.size()) {
 		std::cout << "covariate sample count and case+control sample count match" << std::endl;
 	}
-    
+
     if(gender_info_ref.size() == gender_info.size()) {
 		std::cout << "gender information sample count and case+control sample count match" << std::endl;
 	}
-    
+
     int correct = 1;
     for(int i=0;i<gender_info_ref.size();i++)
     {
@@ -374,14 +370,14 @@ int main(int argc,char **argv)
 	 * 4th column of matrix will be different for each sample (as per understanding)
 	 */
 	int chunk_size = CHUNK_SIZE;
-	
+
 	NULL_MODEL_FEATURE_COUNT = 1+PC+cov_count+1;
 	// if gender_info read and every seq. gender is known it means gender info is read. 
 	// So, one more feature
 	if(gender_info_file_name.size()>0 && unknown_gender==0){
 		NULL_MODEL_FEATURE_COUNT++;
 	}
-	
+
 	ALT_MODEL_FEATURE_COUNT = 1+NULL_MODEL_FEATURE_COUNT;
 
 	global_features_NULL = std::vector<std::vector<double> >(nrow,std::vector<double>(NULL_MODEL_FEATURE_COUNT));
@@ -411,11 +407,54 @@ int main(int argc,char **argv)
 		}	
 	}
 
-	null_model = glm(global_features_NULL,Y,0.1,20);
+	// data standardization
+	std::vector<double> mean(global_features_NULL[0].size(), 0), std_dev(global_features_NULL[0].size(), 0);
+	// mean calculation
+	for(size_t i = 0; i<global_features_NULL.size(); ++i){
+		for(size_t j = 1; j<global_features_NULL[0].size(); ++j){
+			 mean[j] += global_features_NULL[i][j];
+		}
+	}
+	for(size_t i = 1; i<global_features_NULL[0].size(); i++){
+		mean[i] /= global_features_NULL.size();
+	}
+	// std. dev. calculation and standardization
+	for(size_t i = 0; i<global_features_NULL.size(); ++i){
+		for(size_t j = 1; j<global_features_NULL[0].size(); ++j){
+			 std_dev[j] += (global_features_NULL[i][j]-mean[j])*(global_features_NULL[i][j]-mean[j]);
+		}
+	}
+	for(size_t i = 1; i<global_features_NULL[0].size(); i++){
+		std_dev[i] /= global_features_NULL.size();
+		std_dev[i] = sqrt(std_dev[i]);
+	}
+	// data standardization
+	for(size_t i = 0; i<global_features_NULL.size(); ++i){
+		for(size_t j = 1; j<global_features_NULL[0].size(); ++j){
+			// don't do standardization if std. dev is zero
+			if (fabs(std_dev[j]) > 1e-305) {
+				global_features_NULL[i][j] = (global_features_NULL[i][j]-mean[j])/std_dev[j];
+				global_features_ALT[i][j] = (global_features_ALT[i][j]-mean[j])/std_dev[j];
+			}
+		}
+	}
+
+	bool singularity_error = false;
+	bool nan_error = false;
+	double model_error = 0;
+	int exit_iteration = 0;
+
+	null_model = glm_irls(global_features_NULL, Y, 0.1, 25, singularity_error, nan_error, model_error, exit_iteration);
+	if(singularity_error || nan_error){
+		std::cerr << "Error while null model optimizing at kmer " << current_chunk_no*CHUNK_SIZE << " to "<< current_chunk_no*CHUNK_SIZE+read_row_count << std::endl;
+		std::cerr << "singularity error : " << singularity_error << " nan error : " << nan_error << std::endl;
+		std::cerr << "Null model optimization has exited early due to singularity error" << std::endl;
+		std::cerr << "Achived error " << model_error  << " , Exited at iteration " << exit_iteration << std::endl;
+	}
 
 	output = std::vector<double>(CHUNK_SIZE);
 	int chunkread = 0;
-    
+
     /*
      * First we will init sync primitive to create a signal for threads 
      * to start
@@ -430,6 +469,7 @@ int main(int argc,char **argv)
 		pthread_create(&thread_list[l], NULL, worker_thread_func, (void *)info);
 	}
 
+	current_chunk_no=0;
     while(true)
     {
         char buf[MAX_LINE_LENGTH];
@@ -480,7 +520,7 @@ int main(int argc,char **argv)
          * particular loaction exclusive to thread. As it's write operation is not in 
          * same memory address for different thread no synchrnization needed
          */ 
-        
+
         pthread_mutex_lock(&done_count_lock);
         /* 
          * done_count holds how many thread has completed their part
@@ -512,7 +552,7 @@ int main(int argc,char **argv)
 			break;
 		}
 		start_indx += read_row_count;
-
+		current_chunk_no++;
     }
 
     return 0;
@@ -572,6 +612,7 @@ int open_file_connection()
         cout<<"control_total_kmers.txt not found";
         return 1;
     }
+
     return 0;
 }
 
@@ -617,38 +658,80 @@ void * worker_thread_func(void *arg)
 {
 	int thread_no = ((thread_info *)arg)->thread_no;
 	int interleave = num_of_thread;
-	
+
 	std::vector<double> counts(Y.size());
 	std::vector<std::vector<double> > thread_local_features_ALT(global_features_ALT);
-	
+
 	while(true)
 	{
 		sem_wait(&all_start);
 		if(thread_exit_signal==1) {
 			break;
 		}
-		
+
 		for(int l=thread_no;l<read_row_count;l+=interleave)
 		{
 			for(unsigned int l1=0;l1<Y.size();l1++)
 			{
 				counts[l1] = kmercounts[l][l1]/(double)totals[l1];
 			}
-			
+
 			//create the fourth column of matrix
 			for(unsigned int l1=0;l1<Y.size();l1++)
 			{
 				thread_local_features_ALT[l1][ALT_MODEL_FEATURE_COUNT-1] = counts[l1];
 			}
-			
-			std::vector<double> alt_model = glm(thread_local_features_ALT,Y,learn_rate,mx_iter);
-			
+
+			// data standardization
+			double mean = 0, std_dev = 0;
+			// mean calculation
+			for(size_t i = 0; i<thread_local_features_ALT.size(); ++i){
+				size_t j = thread_local_features_ALT[0].size() - 1;
+				mean += thread_local_features_ALT[i][j];
+			}
+			mean /= thread_local_features_ALT.size();
+
+			// std. dev. calculation and standardization
+			for(size_t i = 0; i<thread_local_features_ALT.size(); ++i){
+				size_t j = thread_local_features_ALT[0].size() - 1;
+				std_dev += (thread_local_features_ALT[i][j]-mean)*(thread_local_features_ALT[i][j]-mean);
+			}
+			std_dev /= thread_local_features_ALT.size();
+			std_dev = sqrt(std_dev);
+
+			// data standardization
+			// don't do standardization if std. dev is zero
+			if (fabs(std_dev) > 1e-305) {
+				for(size_t i = 0; i<thread_local_features_ALT.size(); ++i){
+					size_t j = thread_local_features_ALT[0].size() - 1;
+					thread_local_features_ALT[i][j] = (thread_local_features_ALT[i][j]-mean)/std_dev;
+				}
+			}
+
+			bool singularity_error = false;
+			bool nan_error = false;
+			double model_error = 0;
+			int exit_iteration = 0;
+
+			std::vector<double> alt_model;
+			double learn_rate_tmp = learn_rate;
+			int iter = mx_iter;
+
+			alt_model = glm_irls(thread_local_features_ALT,Y,learn_rate_tmp,iter,singularity_error, nan_error, model_error, exit_iteration);
+			if(singularity_error || nan_error){
+				std::cerr << "Error while alt model optimizing at kmer " << current_chunk_no*CHUNK_SIZE << " to "<< current_chunk_no*CHUNK_SIZE+read_row_count << std::endl;
+				std::cerr << "singularity error : " << singularity_error << " nan error : " << nan_error << std::endl;
+				std::cerr << "Alt model optimization has exited early due to singularity error" << std::endl;
+				std::cerr << "Achived error " << model_error  << " , Exited at iteration " << exit_iteration << std::endl;
+			}
+
 			double alt_likelihood = 1.0;
 			for(int dat = 0; dat < thread_local_features_ALT.size(); ++dat){
 				std::vector<double> data(thread_local_features_ALT[0].size());
 				for(int j = 0; j<thread_local_features_ALT[0].size(); ++j){
 					data[j] = thread_local_features_ALT[dat][j];
 				}
+
 				double p = predict(alt_model, data);
 				
 				if( Y[dat] == 1){
@@ -656,6 +739,17 @@ void * worker_thread_func(void *arg)
 				}
 				else{
 					alt_likelihood = alt_likelihood*(1.0-p); 
+				}
+
+				if(alt_likelihood <= 0.0){
+					std::cerr << "Nan error will happen as or alt_likelihood is <=0 while estimating alt_liklelihood_ratio at kmer no. " 
+					<< current_chunk_no*CHUNK_SIZE+l << " at thread " <<  thread_no << std::endl;
+					std::cerr << "alt likelihood : " << alt_likelihood << std::endl;
+					std::cerr << "glm alt model prediction without sigmoid for last kmer : " << linear_predictor(alt_model, data) << std::endl;
+					std::cerr << "glm alt model prediction with sigmoid for last kmer : " << predict(alt_model, data) << std::endl;
+					std::cerr << "glm null model prediction without sigmoid for last kmer : " << linear_predictor(null_model, data) << std::endl;
+					std::cerr << "glm null model prediction with sigmoid for last kmer : " << predict(null_model, data) << std::endl;
+					break;
 				}
 			}
 
@@ -683,13 +777,30 @@ void * worker_thread_func(void *arg)
 			double likelihood_ratio = null_likelihood/alt_likelihood;
 			double log_likelihood_ratio = -2.0*(log(likelihood_ratio));
 
-			if(fabs(log_likelihood_ratio)<eps || log_likelihood_ratio<0.0){
-				log_likelihood_ratio = 0.0;
+			if(std::isnan(null_likelihood) || std::isnan(alt_likelihood) || 
+			std::isnan(likelihood_ratio) || std::isnan(log_likelihood_ratio) || log_likelihood_ratio < 0.0){
+				std::cerr << "Nan error happend or log_likelihood_ratio is <0 while estimating log_liklelihood_ratio at kmer no. " 
+				<< current_chunk_no*CHUNK_SIZE+l << " at thread " <<  thread_no << std::endl;
+				std::cerr << "alt model : ";
+				for(size_t i=0;i<alt_model.size();i++)
+				{
+					std::cerr << alt_model[i] << ' ';
+				}
+				std::cerr << std::endl;
+				std::cerr << "likelihood ratio : " << likelihood_ratio << std::endl;
+				std::cerr << "null likelihood : " << null_likelihood << std::endl;
+				std::cerr << "alt likelihood : " << alt_likelihood << std::endl;
+				std::cerr << "log likelihood ratio : " << log_likelihood_ratio << std::endl;
 			}
 
+			if(fabs(log_likelihood_ratio)<eps || log_likelihood_ratio<0.0){
+				std::cerr << "Due to log_likelihood_ratio<0, assuming null likelihood==alt likelihood, therefore log_likelihood_ratio == 0" << std::endl;
+				log_likelihood_ratio = 0.0;
+				std::cerr << "after setting log_likelihood_ratio to zero chi-square value (with dof 1) = " << alglib::chisquarecdistribution(1, log_likelihood_ratio) << std::endl;
+			}
 			output[l] = alglib::chisquarecdistribution(1, log_likelihood_ratio);
 		}
-		
+
 		pthread_mutex_lock(&done_count_lock);
 		done_count++;
 		if(done_count==num_of_thread) {
@@ -697,6 +808,6 @@ void * worker_thread_func(void *arg)
 		}
 		pthread_mutex_unlock(&done_count_lock);
 	}
-	
+
 	// delete ((thread_info *)arg);
 }
