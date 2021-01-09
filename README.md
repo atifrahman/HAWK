@@ -189,4 +189,4 @@ After running HAWK and getting sequences associated with cases and controls, the
 If you use HAWK, please cite
 
 * Rahman, Atif, Ingileif Hallgrímsdóttir, Michael Eisen, and Lior Pachter. "Association mapping from sequencing reads using k-mers." Elife 7 (2018): e32920.
-* Zakaria Mehrab, Jaiaid Mobin, Ibrahim Asadullah Tahmid, and Atif Rahman. "A faster implementation of association mapping from k-mers." bioRxiv 2020.04.14.040675; doi: https://doi.org/10.1101/2020.04.14.040675.
+* Mehrab Z, Mobin J, Tahmid IA, Rahman A (2021) Efficient association mapping from k-mers—An application in finding sex-specific sequences. PLOS ONE 16(1): e0245058. https://doi.org/10.1371/journal.pone.0245058.
