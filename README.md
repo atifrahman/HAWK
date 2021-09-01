@@ -93,6 +93,8 @@ Copy the scripts 'runHawk' and 'runAbyss' into the folder and run
 The k-mers with significant association to cases and controls will be in 
 'case_kmers.fasta' and 'control_kmers.fasta' 
 
+<strong>Note:</strong> HAWK will not run properly if the total number of cases and controls exceeds the limit on the number of open files by a process, which is 1024 in some systems. In that case, please set it to a number at least 10 bigger than the total number of cases and controls by running `ulimit -Sn  <max number of open files>` (example: ulimit -Sn 4096). This may require admin privileges. 
+
 ## Assembling k-mers with significant association
 
 The k-mers with significant association to cases and controls can be assembled by running
