@@ -84,7 +84,7 @@ SRR3050846	U	Case
 SRR3050847	U	Control
 ```
 
-Copy the scripts 'runHawk' and 'runAbyss' into the folder and run
+Copy the scripts 'runHawk' and 'runAbyss' (from the supplements directory) into the folder and run
 
 ```
 ./runHawk
